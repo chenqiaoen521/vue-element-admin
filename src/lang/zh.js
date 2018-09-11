@@ -107,6 +107,7 @@ export default {
     dragTips1: '默认顺序',
     dragTips2: '拖拽后顺序',
     title: '标题',
+    rolename: '名称',
     importance: '重要性',
     type: '类型',
     remark: '点评',

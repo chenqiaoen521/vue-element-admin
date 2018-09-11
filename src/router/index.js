@@ -141,7 +141,37 @@ export const asyncRouterMap = [
       }
     ]
   },
-
+  {
+    path: '/user',
+    component: Layout,
+    redirect: '/user/index',
+    alwaysShow: true, // will always show the root menu
+    meta: {
+      title: '用户模块',
+      icon: 'people',
+      roles: ['admin', 'editor'] // you can set roles in root nav
+    },
+    children: [
+      {
+        path: 'list',
+        component: () => import('@/views/user/list'),
+        name: 'userlist',
+        meta: {
+          title: '用户列表',
+          roles: ['admin'] // or you can only set roles in sub nav
+        }
+      },
+      {
+        path: 'role',
+        component: () => import('@/views/user/role/index'),
+        name: 'rolelist',
+        meta: {
+          title: '角色列表',
+          roles: ['admin'] // or you can only set roles in sub nav
+        }
+      }
+    ]
+  },
   {
     path: '/icon',
     component: Layout,
