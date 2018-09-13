@@ -19,6 +19,14 @@ export function timeAgo(time) {
   }
 }
 
+export function parseStatus(val) {
+  if (val) {
+    return '正常'
+  } else {
+    return '禁用'
+  }
+}
+
 /* 数字 格式化*/
 export function numberFormatter(num, digits) {
   const si = [

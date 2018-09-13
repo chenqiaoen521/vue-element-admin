@@ -30,51 +30,44 @@
           <span>{{ scope.row.id }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.date')" width="150px" align="center">
+      <el-table-column :label="$t('table.username')" min-width="150px">
         <template slot-scope="scope">
-          <span>{{ scope.row.timestamp | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
+          <span>{{ scope.row.username }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.title')" min-width="150px">
+      <el-table-column :label="$t('table.password')" min-width="150px">
         <template slot-scope="scope">
-          <span class="link-type" @click="handleUpdate(scope.row)">{{ scope.row.title }}</span>
-          <el-tag>{{ scope.row.type | typeFilter }}</el-tag>
+          <span> ********* </span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.author')" width="110px" align="center">
+      <el-table-column :label="$t('table.status')" min-width="150px">
         <template slot-scope="scope">
-          <span>{{ scope.row.author }}</span>
+          <el-tag :type="scope.row.status ? 'success' : 'danger'">{{scope.row.status | parseStatus}}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column v-if="showReviewer" :label="$t('table.reviewer')" width="110px" align="center">
+      <el-table-column :label="$t('table.createdDate')" width="150px" align="center">
         <template slot-scope="scope">
-          <span style="color:red;">{{ scope.row.reviewer }}</span>
+          <span>{{ scope.row.createdAt | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.importance')" width="80px">
+      <el-table-column :label="$t('table.updatedDate')" width="150px" align="center">
         <template slot-scope="scope">
-          <svg-icon v-for="n in +scope.row.importance" :key="n" icon-class="star" class="meta-item__icon"/>
+          <span>{{ scope.row.updatedAt | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.readings')" align="center" width="95">
+      <el-table-column :label="$t('table.actions')" align="center" width="380" class-name="small-padding fixed-width">
         <template slot-scope="scope">
-          <span v-if="scope.row.pageviews" class="link-type" @click="handleFetchPv(scope.row.pageviews)">{{ scope.row.pageviews }}</span>
-          <span v-else>0</span>
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('table.status')" class-name="status-col" width="100">
-        <template slot-scope="scope">
-          <el-tag :type="scope.row.status | statusFilter">{{ scope.row.status }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('table.actions')" align="center" width="230" class-name="small-padding fixed-width">
-        <template slot-scope="scope">
+          <span>是否禁用</span>
+          <el-switch
+            v-model="scope.row.status"
+            active-color="#13ce66"
+            @change="updateStat(scope.row)"
+            inactive-color="#ff4949">
+          </el-switch>&nbsp;&nbsp;&nbsp;
           <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">{{ $t('table.edit') }}</el-button>
-          <el-button v-if="scope.row.status!='published'" size="mini" type="success" @click="handleModifyStatus(scope.row,'published')">{{ $t('table.publish') }}
+          <el-button  size="mini" type="success" @click="handleuserole(scope.row)">{{ $t('table.userole') }}
           </el-button>
-          <el-button v-if="scope.row.status!='draft'" size="mini" @click="handleModifyStatus(scope.row,'draft')">{{ $t('table.draft') }}
-          </el-button>
-          <el-button v-if="scope.row.status!='deleted'" size="mini" type="danger" @click="handleModifyStatus(scope.row,'deleted')">{{ $t('table.delete') }}
+          <el-button size="mini" type="danger" @click="handleModifyStatus(scope.row,'deleted')">{{ $t('table.delete') }}
           </el-button>
         </template>
       </el-table-column>
@@ -85,34 +78,33 @@
     </div>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;">
-        <el-form-item :label="$t('table.type')" prop="type">
-          <el-select v-model="temp.type" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key"/>
-          </el-select>
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="90px" style="width: 400px; margin-left:50px;">
+        <el-form-item :label="$t('table.username')" prop="username">
+          <el-input :disabled="dialogStatus === 'update'" v-model="temp.username"/>
         </el-form-item>
-        <el-form-item :label="$t('table.date')" prop="timestamp">
-          <el-date-picker v-model="temp.timestamp" type="datetime" placeholder="Please pick a date"/>
+        <el-form-item :label="$t('table.password')" prop="password">
+          <el-input v-model="temp.password"/>
         </el-form-item>
-        <el-form-item :label="$t('table.title')" prop="title">
-          <el-input v-model="temp.title"/>
-        </el-form-item>
-        <el-form-item :label="$t('table.status')">
-          <el-select v-model="temp.status" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in statusOptions" :key="item" :label="item" :value="item"/>
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('table.importance')">
-          <el-rate v-model="temp.importance" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="3" style="margin-top:8px;"/>
-        </el-form-item>
-        <el-form-item :label="$t('table.remark')">
-          <el-input :autosize="{ minRows: 2, maxRows: 4}" v-model="temp.remark" type="textarea" placeholder="Please input"/>
+        <el-form-item :label="$t('table.relpassword')" prop="relpassword">
+          <el-input v-model="temp.relpassword"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">{{ $t('table.cancel') }}</el-button>
         <el-button v-if="dialogStatus=='create'" type="primary" @click="createData">{{ $t('table.confirm') }}</el-button>
         <el-button v-else type="primary" @click="updateData">{{ $t('table.confirm') }}</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible2">
+      <el-form ref="dataForm" :model="temp" label-position="left" label-width="90px" style="width: 400px; margin-left:50px;">
+        <el-radio-group v-model="temp.yd_role_id">
+          <el-radio v-for="item in temp2" :label="item.id">{{item.name}}</el-radio>
+        </el-radio-group>
+    </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible2 = false">{{ $t('table.cancel') }}</el-button>
+        <el-button type="primary" @click="updateRole">{{ $t('table.confirm') }}</el-button>
       </div>
     </el-dialog>
 
@@ -133,7 +125,7 @@
 import { fetchList, fetchPv, createArticle, updateArticle } from '@/api/article'
 import * as userApi from '@/api/user'
 import waves from '@/directive/waves' // 水波纹指令
-import { parseTime } from '@/utils'
+import { parseTime} from '@/utils'
 
 const calendarTypeOptions = [
   { key: 'CN', display_name: 'China' },
@@ -167,11 +159,38 @@ export default {
     }
   },
   data() {
+    var validateUsername =async (rule, value, callback) => {
+      let reg = /^[a-z][a-z 0-9]{1,}$/i
+      if (this.dialogStatus === 'update') {
+        callback()
+      } else {
+        if (reg.test(value)) {
+          await userApi.findUser({username: value}).then(res => {
+            if (res.data.code === 1) {
+              callback()
+            } else {
+              callback(new Error('用户名已经存在了'))
+            }
+          })
+        } else {
+          callback(new Error('密码格式为字母加数字'))
+        }
+      }
+    }
+    var validatePass = (rule, value, callback) => {
+      if (value !== this.$refs.dataForm.model.password) {
+        callback(new Error('两次输入密码不一致!'))
+      } else {
+        callback()
+      }
+    }
     return {
+      dialogFormVisible2: false,
       tableKey: 0,
       list: null,
       total: null,
       listLoading: true,
+      temp2: null,
       listQuery: {
         page: 1,
         limit: 20,
@@ -186,13 +205,9 @@ export default {
       statusOptions: ['published', 'draft', 'deleted'],
       showReviewer: false,
       temp: {
-        id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
-        title: '',
-        type: '',
-        status: 'published'
+        username: '',
+        password: '',
+        relpassword: ''
       },
       dialogFormVisible: false,
       dialogStatus: '',
@@ -203,27 +218,50 @@ export default {
       dialogPvVisible: false,
       pvData: [],
       rules: {
-        type: [{ required: true, message: 'type is required', trigger: 'change' }],
-        timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
-        title: [{ required: true, message: 'title is required', trigger: 'blur' }]
+        username: [
+          { required: true, message: '用户名是必填项', trigger: 'blur' },
+          { validator: validateUsername, trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '密码是必填项', trigger: 'blur' }
+        ],
+        relpassword: [
+           { required: true, message: '请确认密码', trigger: 'blur' },
+           { validator: validatePass, trigger: 'blur' }
+        ]
       },
       downloadLoading: false
     }
   },
   created() {
     this.getList()
+    this.getRoles()
   },
   methods: {
+    handleuserole (row) {
+      this.dialogFormVisible2 = true
+      this.temp = row
+    },
+    updateStat ({id, status} = res) {
+      userApi.updateStatus({id, status})
+    },
     getList() {
       this.listLoading = true
       userApi.getUserList(this.listQuery).then(response => {
-        this.list = response.data.items
-        this.total = response.data.total
-
+        this.list = response.data.data
+        this.total = response.data.count
         // Just to simulate the time of the request
         setTimeout(() => {
           this.listLoading = false
-        }, 1.5 * 1000)
+        }, 1.5 * 100)
+      })
+    },
+    getRoles () {
+      userApi.getRoleList().then(response => {
+        this.temp2 = response.data.data
+        setTimeout(() => {
+          this.listLoading = false
+        }, 1.5 * 100)
       })
     },
     handleFilter() {
@@ -239,11 +277,16 @@ export default {
       this.getList()
     },
     handleModifyStatus(row, status) {
-      this.$message({
-        message: '操作成功',
-        type: 'success'
-      })
-      row.status = status
+      if (status === 'deleted') {
+        userApi.delUser({id: row.id}).then(()=> {
+          this.$message({
+            message: '操作成功',
+            type: 'success'
+          })
+          this.list.splice(this.list.findIndex(item => item.id === row.id), 1)
+          row.status = status
+        })
+      }
     },
     resetTemp() {
       this.temp = {
@@ -267,9 +310,7 @@ export default {
     createData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
-          this.temp.author = 'vue-element-admin'
-          createArticle(this.temp).then(() => {
+          userApi.addUser(this.temp).then(() => {
             this.list.unshift(this.temp)
             this.dialogFormVisible = false
             this.$notify({
@@ -295,8 +336,7 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
-          tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-          updateArticle(tempData).then(() => {
+          userApi.updatePass(tempData).then(() => {
             for (const v of this.list) {
               if (v.id === this.temp.id) {
                 const index = this.list.indexOf(v)
@@ -305,6 +345,29 @@ export default {
               }
             }
             this.dialogFormVisible = false
+            this.$notify({
+              title: '成功',
+              message: '更新成功',
+              type: 'success',
+              duration: 2000
+            })
+          })
+        }
+      })
+    },
+    updateRole() {
+      this.$refs['dataForm'].validate((valid) => {
+        if (valid) {
+          const tempData = Object.assign({}, this.temp)
+          userApi.updateroleID(tempData).then(() => {
+            for (const v of this.list) {
+              if (v.id === this.temp.id) {
+                const index = this.list.indexOf(v)
+                this.list.splice(index, 1, this.temp)
+                break
+              }
+            }
+            this.dialogFormVisible2 = false
             this.$notify({
               title: '成功',
               message: '更新成功',

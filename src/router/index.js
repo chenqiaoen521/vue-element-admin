@@ -147,7 +147,7 @@ export const asyncRouterMap = [
     redirect: '/user/index',
     alwaysShow: true, // will always show the root menu
     meta: {
-      title: '用户模块',
+      title: 'usermodel',
       icon: 'people',
       roles: ['admin', 'editor'] // you can set roles in root nav
     },
@@ -157,7 +157,7 @@ export const asyncRouterMap = [
         component: () => import('@/views/user/list'),
         name: 'userlist',
         meta: {
-          title: '用户列表',
+          title: 'userlist',
           roles: ['admin'] // or you can only set roles in sub nav
         }
       },
@@ -166,7 +166,16 @@ export const asyncRouterMap = [
         component: () => import('@/views/user/role/index'),
         name: 'rolelist',
         meta: {
-          title: '角色列表',
+          title: 'rolelist',
+          roles: ['admin'] // or you can only set roles in sub nav
+        }
+      },
+      {
+        path: 'auth',
+        component: () => import('@/views/user/auth/index'),
+        name: 'authlist',
+        meta: {
+          title: 'authlist',
           roles: ['admin'] // or you can only set roles in sub nav
         }
       }
