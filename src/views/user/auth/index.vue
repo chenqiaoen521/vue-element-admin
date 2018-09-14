@@ -75,6 +75,16 @@
         <el-form-item :label="$t('table.path')" prop="path">
           <el-input v-model="temp.path"/>
         </el-form-item>
+        <!-- <el-form-item :label="$t('table.pathname')">
+          <el-select v-model="temp.parentid" placeholder="请选择父级">
+            <el-option
+              v-for="item in parent"
+              :key="item.id"
+              :label="item.pathname"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </el-form-item> -->
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">{{ $t('table.cancel') }}</el-button>
@@ -154,7 +164,8 @@ export default {
       showReviewer: false,
       temp: {
         path: '',
-        pathname: ''
+        pathname: '',
+        parentid: ''
       },
       dialogFormVisible: false,
       dialogStatus: '',
@@ -253,6 +264,7 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
+          debugger
           userApi.updateAuth(tempData).then(() => {
             for (const v of this.list) {
               if (v.id === this.temp.id) {

@@ -6,11 +6,16 @@ import { asyncRouterMap, constantRouterMap } from '@/router'
  * @param route
  */
 function hasPermission(roles, route) {
-  if (route.meta && route.meta.roles) {
-    return roles.some(role => route.meta.roles.indexOf(role) >= 0)
+  /*if (route.meta && route.meta.roles) {
+    return roles.some(role => {
+      return route.path === role.path
+    })
   } else {
     return true
-  }
+  }*/
+  return roles.some(role => {
+    return route.path === role.path
+  })
 }
 
 /**
@@ -52,7 +57,7 @@ const permission = {
         } else {
           accessedRouters = filterAsyncRouter(asyncRouterMap, roles)
         }
-        commit('SET_ROUTERS', accessedRouters)
+        commit('SET_ROUTERS', asyncRouterMap)
         resolve()
       })
     }
